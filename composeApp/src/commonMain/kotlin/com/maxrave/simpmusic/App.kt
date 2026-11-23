@@ -233,9 +233,6 @@ fun App(
         if (isShowNowPlaylistScreen) userStarted = true
     }
 
-    val hazeState =
-        rememberHazeState()
-
     LaunchedEffect(intent) {
         val intent = intent ?: return@LaunchedEffect
         val data = intent.data
@@ -765,7 +762,7 @@ fun App(
                                                 } else {
                                                     Modifier
                                                 },
-                                            ).hazeSource(hazeState),
+                                            ),
                                     ) {
                                         CompositionLocalProvider(
                                             LocalAppDialogOpen provides appDialogOpen,

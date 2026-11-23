@@ -373,7 +373,11 @@ fun HomeScreen(
     // leaving the tint as it was.
     val headerImage by viewModel.homeBackground.collectAsStateWithLifecycle()
     var headerImageFailed by remember(headerImage) { mutableStateOf(false) }
-    val networkLoader = rememberNetworkLoader(HttpClient(CIO))
+    val httpClient = remember { HttpClient(CIO) }
+    DisposableEffect(httpClient) {
+        onDispose { httpClient.close() }
+    }
+    val networkLoader = rememberNetworkLoader(httpClient)
     val dominantColorState =
         rememberDominantColorState(
             defaultColor = backgroundColor,

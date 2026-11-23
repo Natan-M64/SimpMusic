@@ -90,7 +90,7 @@ abstract class BaseViewModel :
         }
 
     // Loading dialog
-    private val _showLoadingDialog: MutableStateFlow<Pair<Boolean, String>> = MutableStateFlow(false to getString(Res.string.loading))
+    private val _showLoadingDialog: MutableStateFlow<Pair<Boolean, String>> = MutableStateFlow(false to "")
     val showLoadingDialog: StateFlow<Pair<Boolean, String>> get() = _showLoadingDialog
 
     fun showLoadingDialog(message: String? = null) {
@@ -98,7 +98,7 @@ abstract class BaseViewModel :
     }
 
     fun hideLoadingDialog() {
-        _showLoadingDialog.value = false to getString(Res.string.loading)
+        _showLoadingDialog.value = false to _showLoadingDialog.value.second
     }
 
     private fun getNowPlayingVideoId() {
