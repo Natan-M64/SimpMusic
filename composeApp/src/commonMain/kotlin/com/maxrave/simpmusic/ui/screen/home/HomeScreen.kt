@@ -374,7 +374,7 @@ fun HomeScreen(
     val headerImage by viewModel.homeBackground.collectAsStateWithLifecycle()
     var headerImageFailed by remember(headerImage) { mutableStateOf(false) }
     val httpClient = remember { HttpClient(CIO) }
-    DisposableEffect(httpClient) {
+    androidx.compose.runtime.DisposableEffect(httpClient) {
         onDispose { httpClient.close() }
     }
     val networkLoader = rememberNetworkLoader(httpClient)
