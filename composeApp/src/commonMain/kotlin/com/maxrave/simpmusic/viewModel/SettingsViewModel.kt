@@ -278,6 +278,9 @@ class SettingsViewModel(
     private val _autoBackupMaxFiles = MutableStateFlow<Int>(5)
     val autoBackupMaxFiles: StateFlow<Int> = _autoBackupMaxFiles
 
+    private val _maxParallelDownloads = MutableStateFlow<Int>(3)
+    val maxParallelDownloads: StateFlow<Int> = _maxParallelDownloads
+
     private val _autoBackupLastTime = MutableStateFlow<Long>(0L)
     val autoBackupLastTime: StateFlow<Long> = _autoBackupLastTime
 
@@ -379,6 +382,7 @@ class SettingsViewModel(
         getAutoBackupEnabled()
         getAutoBackupFrequency()
         getAutoBackupMaxFiles()
+        getMaxParallelDownloads()
         getAutoBackupLastTime()
         viewModelScope.launch {
             calculateDataFraction(
@@ -811,6 +815,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setAutoBackupMaxFiles(max)
             getAutoBackupMaxFiles()
+        }
+    }
+
+    private fun getMaxParallelDownloads() {
+        viewModelScope.launch {
+            dataStoreManager.maxParallelDownloads.collect { count ->
+                _maxParallelDownloads.value = count
+            }
+        }
+    }
+
+    fun setMaxParallelDownloads(count: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setMaxParallelDownloads(count)
+            getMaxParallelDownloads()
         }
     }
 

@@ -284,6 +284,8 @@ import simpmusic.composeapp.generated.resources.developer_blog_tagline
 import simpmusic.composeapp.generated.resources.discord_integration
 import simpmusic.composeapp.generated.resources.donation
 import simpmusic.composeapp.generated.resources.download_quality
+import simpmusic.composeapp.generated.resources.max_parallel_downloads
+import simpmusic.composeapp.generated.resources.max_parallel_downloads_description
 import simpmusic.composeapp.generated.resources.downloaded_cache
 import simpmusic.composeapp.generated.resources.enable_animated_artwork
 import simpmusic.composeapp.generated.resources.enable_canvas
@@ -562,6 +564,7 @@ fun SettingScreen(
     val librarySyncState by viewModel.librarySyncState.collectAsStateWithLifecycle()
     val quality by viewModel.quality.collectAsStateWithLifecycle()
     val downloadQuality by viewModel.downloadQuality.collectAsStateWithLifecycle()
+    val maxParallelDownloads by viewModel.maxParallelDownloads.collectAsStateWithLifecycle()
     val autoDownloadLikedSongs by viewModel.autoDownloadLikedSongs.collectAsStateWithLifecycle()
     val smartDownloadsEnabled by viewModel.smartDownloadsEnabled.collectAsStateWithLifecycle()
     val smartDownloadsCount by viewModel.smartDownloadsCount.collectAsStateWithLifecycle()
@@ -1221,6 +1224,33 @@ fun SettingScreen(
                                     confirm =
                                         runBlocking { getString(Res.string.change) } to { state ->
                                             state.selectOne?.getSelected()?.let { viewModel.setDownloadQuality(it) }
+                                        },
+                                    dismiss = runBlocking { getString(Res.string.cancel) },
+                                ),
+                            )
+                        },
+                    )
+                    SettingItem(
+                        title = stringResource(Res.string.max_parallel_downloads),
+                        subtitle = "$maxParallelDownloads — ${stringResource(Res.string.max_parallel_downloads_description)}",
+                        smallSubtitle = true,
+                        onClick = {
+                            val options = listOf(1, 2, 3, 5, 10, 15, 20)
+                            viewModel.setAlertData(
+                                SettingAlertState(
+                                    title = runBlocking { getString(Res.string.max_parallel_downloads) },
+                                    selectOne =
+                                        SettingAlertState.SelectData(
+                                            listSelect =
+                                                options.map { count ->
+                                                    (count == maxParallelDownloads) to count.toString()
+                                                },
+                                        ),
+                                    confirm =
+                                        runBlocking { getString(Res.string.change) } to { state ->
+                                            state.selectOne?.getSelected()?.toIntOrNull()?.let {
+                                                viewModel.setMaxParallelDownloads(it)
+                                            }
                                         },
                                     dismiss = runBlocking { getString(Res.string.cancel) },
                                 ),
