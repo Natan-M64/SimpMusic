@@ -821,66 +821,34 @@ class SharedViewModel(
 
     fun checkIsRestoring() {
         viewModelScope.launch {
-            val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE)
-            songRepository.getDownloadedSongs().first().let { songs ->
-                songs?.forEach { song ->
-                    if (!downloadedCacheKeys.contains(song.videoId)) {
-                        songRepository.updateDownloadState(
-                            song.videoId,
-                            DownloadState.STATE_NOT_DOWNLOADED,
-                        )
-                    }
+            val songs = songRepository.getDownloadedSongs().first().orEmpty()
+            val playlists = playlistRepository.getAllDownloadedPlaylist().first()
+            val downloadedCacheKeys = cacheRepository.getAllCacheKeys(DOWNLOAD_CACHE).toHashSet()
+            for (song in songs) {
+                if (song.videoId !in downloadedCacheKeys) {
+                    songRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            playlistRepository.getAllDownloadedPlaylist().first().let { list ->
-                for (data in list) {
-                    when (data) {
-                        is AlbumEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                albumRepository.updateAlbumDownloadState(
-                                    data.browseId,
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                )
-                            }
+            for (playlist in playlists) {
+                when (playlist) {
+                    is AlbumEntity -> {
+                        val tracks = playlist.tracks.orEmpty()
+                        if (tracks.isEmpty() || !downloadedCacheKeys.containsAll(tracks)) {
+                            albumRepository.updateAlbumDownloadState(playlist.browseId, DownloadState.STATE_NOT_DOWNLOADED)
                         }
+                    }
 
-                        is PlaylistEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                playlistRepository.updatePlaylistDownloadState(
-                                    data.id,
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                )
-                            }
+                    is PlaylistEntity -> {
+                        val tracks = playlist.tracks.orEmpty()
+                        if (tracks.isEmpty() || !downloadedCacheKeys.containsAll(tracks)) {
+                            playlistRepository.updatePlaylistDownloadState(playlist.id, DownloadState.STATE_NOT_DOWNLOADED)
                         }
+                    }
 
-                        is LocalPlaylistEntity -> {
-                            val tracks = data.tracks ?: emptyList()
-                            if (tracks.isEmpty() ||
-                                (
-                                    !downloadedCacheKeys.containsAll(
-                                        tracks,
-                                    )
-                                )
-                            ) {
-                                localPlaylistRepository.updateLocalPlaylistDownloadState(
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                    data.id,
-                                )
-                            }
+                    is LocalPlaylistEntity -> {
+                        val tracks = localPlaylistRepository.getFullPlaylistTracks(playlist.id)
+                        if (tracks.isEmpty() || tracks.any { it.videoId !in downloadedCacheKeys }) {
+                            localPlaylistRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, playlist.id)
                         }
                     }
                 }
