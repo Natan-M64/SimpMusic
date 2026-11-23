@@ -81,6 +81,7 @@ import com.maxrave.simpmusic.ui.component.taste.ShareTasteSheet
 import com.maxrave.simpmusic.ui.component.taste.TasteCard
 import com.maxrave.simpmusic.ui.component.ListenTogetherIconButton
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.YouTubePlaylistStatusBanner
 import com.maxrave.simpmusic.ui.component.selection.SelectedSongsBottomSheet
 import com.maxrave.simpmusic.ui.component.selection.SongSelectionTopAppBar
 import com.maxrave.simpmusic.ui.component.selection.rememberSongSelectionState
@@ -89,6 +90,7 @@ import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
 import com.maxrave.simpmusic.ui.navigation.destination.home.SettingsDestination
+import com.maxrave.simpmusic.ui.navigation.destination.login.LoginDestination
 import com.maxrave.simpmusic.ui.theme.LocalLiquidGlassEnabled
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -141,6 +143,8 @@ fun LibraryScreen(
     val monthlyRecaps by viewModel.monthlyRecaps.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsStateWithLifecycle()
     val youTubePlaylist by viewModel.youTubePlaylist.collectAsStateWithLifecycle()
+    val youTubePlaylistSavedOnDevice by viewModel.youTubePlaylistSavedOnDevice.collectAsStateWithLifecycle()
+    val youTubePlaylistSessionExpired by viewModel.youTubePlaylistSessionExpired.collectAsStateWithLifecycle()
     val listCanvasSong by viewModel.listCanvasSong.collectAsStateWithLifecycle()
     val yourLocalPlaylist by viewModel.yourLocalPlaylist.collectAsStateWithLifecycle()
     val favoritePlaylist by viewModel.favoritePlaylist.collectAsStateWithLifecycle()
@@ -360,6 +364,19 @@ fun LibraryScreen(
                     youTubePlaylist,
                     emptyText = Res.string.no_YouTube_playlists,
                     onScrolling = onScrolling,
+                    header =
+                        if (youTubePlaylistSessionExpired || youTubePlaylistSavedOnDevice) {
+                            {
+                                YouTubePlaylistStatusBanner(
+                                    sessionExpired = youTubePlaylistSessionExpired,
+                                    hasSavedTiles = !youTubePlaylist.data.isNullOrEmpty(),
+                                    onLogIn = { navController.navigate(LoginDestination) },
+                                    onRetry = { viewModel.getYouTubePlaylist() },
+                                )
+                            }
+                        } else {
+                            null
+                        },
                 ) {
                     viewModel.getYouTubePlaylist()
                 }

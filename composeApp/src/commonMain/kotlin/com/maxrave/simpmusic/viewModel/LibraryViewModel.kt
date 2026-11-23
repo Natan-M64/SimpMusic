@@ -9,6 +9,7 @@ import com.maxrave.domain.data.entities.PlaylistEntity
 import com.maxrave.domain.data.entities.SongEntity
 import com.maxrave.domain.data.model.library.LibraryCollectionPreview
 import com.maxrave.domain.data.model.library.LibraryOverview
+import com.maxrave.domain.data.model.library.YouTubeLibraryPlaylists
 import com.maxrave.domain.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.domain.data.type.ChartItem
 import com.maxrave.domain.data.type.MonthlyRecapItem
@@ -85,6 +86,14 @@ class LibraryViewModel(
     private val _youTubePlaylist: MutableStateFlow<LocalResource<List<PlaylistsResult>>> =
         MutableStateFlow(LocalResource.Loading())
     val youTubePlaylist: StateFlow<LocalResource<List<PlaylistsResult>>> get() = _youTubePlaylist.asStateFlow()
+
+    /** The YouTube tab is showing tiles read from the device instead of from YouTube. */
+    private val _youTubePlaylistSavedOnDevice: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val youTubePlaylistSavedOnDevice: StateFlow<Boolean> get() = _youTubePlaylistSavedOnDevice.asStateFlow()
+
+    /** YouTube itself reported the session as logged out, as opposed to a failed request. */
+    private val _youTubePlaylistSessionExpired: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val youTubePlaylistSessionExpired: StateFlow<Boolean> get() = _youTubePlaylistSessionExpired.asStateFlow()
 
     private val _youTubeMixForYou: MutableStateFlow<LocalResource<List<PlaylistsResult>>> =
         MutableStateFlow(LocalResource.Loading())
@@ -233,9 +242,13 @@ class LibraryViewModel(
 
     fun getYouTubePlaylist() {
         _youTubePlaylist.value = LocalResource.Loading()
+        _youTubePlaylistSavedOnDevice.value = false
+        _youTubePlaylistSessionExpired.value = false
         viewModelScope.launch {
-            playlistRepository.getLibraryPlaylist().collect { data ->
-                _youTubePlaylist.value = LocalResource.Success(data ?: emptyList())
+            playlistRepository.getYouTubeLibraryPlaylists().collect { state ->
+                _youTubePlaylist.value = LocalResource.Success(state.playlists)
+                _youTubePlaylistSavedOnDevice.value = state.source == YouTubeLibraryPlaylists.Source.SAVED_ON_DEVICE
+                _youTubePlaylistSessionExpired.value = state.sessionExpired
             }
         }
     }

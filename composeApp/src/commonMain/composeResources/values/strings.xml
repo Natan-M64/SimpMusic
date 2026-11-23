@@ -259,6 +259,10 @@
     <string name="videos_inArtist">Videos</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
     <string name="no_YouTube_playlists">No YouTube Playlists</string>
+    <string name="youtube_playlists_session_expired">Your YouTube session has expired. Log in again to see your playlists.</string>
+    <string name="youtube_playlists_session_expired_with_saved">Your YouTube session has expired. Log in again to see your playlists. Until then, the playlists saved on this device are shown.</string>
+    <string name="youtube_playlists_saved_on_device">Could not reach YouTube. Showing the YouTube playlists saved on this device.</string>
+    <string name="log_in_again">Log in again</string>
     <string name="track">track(s)</string>
     <string name="save_to_local_playlist">Save to local playlist</string>
     <string name="added_local_playlist">Added Local Playlist</string>
