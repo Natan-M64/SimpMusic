@@ -1174,4 +1174,6 @@
     <string name="soundcloud_play_count_info">%1$s - song info</string>
     <string name="replay_mix">Replay Mix</string>
     <string name="replay_mix_subtitle">Your most played lately · updated daily</string>
+    <string name="restore_login_session">Restore login session</string>
+    <string name="restore_login_session_description">Keep Google/YouTube login cookies when restoring a backup. Turn off to restore only library and settings.</string>
 </resources>
