@@ -215,6 +215,7 @@ import simpmusic.composeapp.generated.resources.chart
 import simpmusic.composeapp.generated.resources.commute
 import simpmusic.composeapp.generated.resources.do_not_show_again
 import simpmusic.composeapp.generated.resources.energize
+import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.feel_good
 import simpmusic.composeapp.generated.resources.focus
 import simpmusic.composeapp.generated.resources.go_to_log_in_page
@@ -228,6 +229,7 @@ import simpmusic.composeapp.generated.resources.let_s_start_with_a_radio
 import simpmusic.composeapp.generated.resources.log_in_to_YouTube
 import simpmusic.composeapp.generated.resources.log_in_warning
 import simpmusic.composeapp.generated.resources.mood
+import simpmusic.composeapp.generated.resources.most_played
 import simpmusic.composeapp.generated.resources.notification
 import simpmusic.composeapp.generated.resources.party
 import simpmusic.composeapp.generated.resources.play_all
@@ -309,8 +311,27 @@ fun HomeScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
     val params by viewModel.params.collectAsStateWithLifecycle()
+    val localSongs by viewModel.localHomeSongs.collectAsStateWithLifecycle()
+    val mostPlayedTitle = stringResource(Res.string.most_played)
+    val favoriteTitle = stringResource(Res.string.favorite)
+    val localShelves =
+        remember(params, localSongs, mostPlayedTitle, favoriteTitle) {
+            if (params == null) {
+                listOf(
+                    HomeItem(contents = localSongs.first, title = mostPlayedTitle),
+                    HomeItem(contents = localSongs.second, title = favoriteTitle),
+                ).filter { it.contents.isNotEmpty() }
+            } else {
+                emptyList()
+            }
+        }
     val homeListState by viewModel.homeListState.collectAsStateWithLifecycle()
     val continuation by viewModel.continuation.collectAsStateWithLifecycle()
+    val openDownloaded: () -> Unit = {
+        navController.navigate(
+            LibraryDynamicPlaylistDestination(type = LibraryDynamicPlaylistType.Downloaded.toStringParams()),
+        )
+    }
 
     val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsStateWithLifecycle()
 
@@ -766,27 +787,22 @@ fun HomeScreen(
                 )
             },
         ) {
-            Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
-                if (!loading) {
-                    if (homeData.isEmpty()) {
-                        OfflineErrorState(
-                            onRetry = onRefresh,
-                            onOpenDownloaded = {
-                                navController.navigate(
-                                    LibraryDynamicPlaylistDestination(
-                                        type = LibraryDynamicPlaylistType.Downloaded.toStringParams(),
-                                    ),
-                                )
-                            },
-                        )
+            Crossfade(targetState = loading && localShelves.isEmpty(), label = "Home Shimmer") { showShimmer ->
+                if (!showShimmer) {
+                    if (homeShelves.isEmpty() && localShelves.isEmpty()) {
+                        OfflineErrorState(onRetry = onRefresh, onOpenDownloaded = openDownloaded)
                         return@Crossfade
                     }
                     LazyColumn(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        itemsIndexed(homeShelves, key = { _, item ->
-                            item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
+                        itemsIndexed(localShelves + homeShelves, key = { index, item ->
+                            if (index < localShelves.size) {
+                                "local-home-${item.title}"
+                            } else {
+                                item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
+                            }
                         }) { index, item ->
                             Box {
                                 if (index == 0) {
@@ -866,7 +882,9 @@ fun HomeScreen(
                                     // Android drops the 8dp over each section's title: the list's own 8dp
                                     // spacing already separates it from the shelf above.
                                     if (getPlatform() != Platform.Android) Spacer(modifier = Modifier.height(8.dp))
-                                    if (item.title == stringResource(Res.string.quick_picks)) {
+                                    if (index < localShelves.size) {
+                                        HomeItem(navController = navController, data = item)
+                                    } else if (item.title == stringResource(Res.string.quick_picks)) {
                                         AnimatedVisibility(
                                             visible =
                                                 homeData.find {
@@ -935,7 +953,15 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        if (homeListState == ListState.PAGINATION_EXHAUST) {
+                        if (homeData.isEmpty() && !loading) {
+                            item {
+                                OfflineErrorState(
+                                    modifier = Modifier.padding(vertical = 16.dp),
+                                    onRetry = onRefresh,
+                                    onOpenDownloaded = openDownloaded,
+                                )
+                            }
+                        } else if (homeListState == ListState.PAGINATION_EXHAUST) {
                             items(newRelease, key = { it.hashCode() }) {
                                 AnimatedVisibility(
                                     visible = newRelease.isNotEmpty(),

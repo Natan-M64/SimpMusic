@@ -4,16 +4,22 @@ import androidx.lifecycle.viewModelScope
 import com.maxrave.common.SELECTED_LANGUAGE
 import com.maxrave.common.SUPPORTED_LANGUAGE
 import com.maxrave.domain.data.entities.SongEntity
+import com.maxrave.domain.data.model.home.Content
 import com.maxrave.domain.data.model.home.HomeDataCombine
 import com.maxrave.domain.data.model.home.HomeItem
 import com.maxrave.domain.data.model.home.chart.Chart
 import com.maxrave.domain.data.model.mood.Mood
+import com.maxrave.domain.data.model.searchResult.songs.Album
+import com.maxrave.domain.data.model.searchResult.songs.Artist
+import com.maxrave.domain.data.model.searchResult.songs.Thumbnail
 import com.maxrave.domain.manager.DataStoreManager
 import com.maxrave.domain.manager.DataStoreManager.Values.TRUE
 import com.maxrave.domain.repository.HomeRepository
+import com.maxrave.domain.repository.SongRepository
 import com.maxrave.domain.utils.Resource
 import com.maxrave.logger.Logger
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,6 +30,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,10 +44,26 @@ import simpmusic.composeapp.generated.resources.view_count
 class HomeViewModel(
     private val dataStoreManager: DataStoreManager,
     private val homeRepository: HomeRepository,
+    songRepository: SongRepository,
 ) : BaseViewModel() {
     private val _homeItemList: MutableStateFlow<List<HomeItem>> =
         MutableStateFlow(arrayListOf())
     val homeItemList: StateFlow<List<HomeItem>> = _homeItemList
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val localHomeSongs =
+        dataStoreManager.explicitContentEnabled
+            .distinctUntilChanged()
+            .flatMapLatest { explicitContent ->
+                val allowExplicit = explicitContent == TRUE
+                combine(
+                    songRepository.observeHomeMostPlayedSongs(12, allowExplicit),
+                    songRepository.observeHomeLikedSongs(24, allowExplicit),
+                ) { mostPlayed, favorites ->
+                    val frequentIds = mostPlayed.map { it.videoId }.toSet()
+                    val recentFavorites = favorites.filterNot { it.videoId in frequentIds }.take(12)
+                    mostPlayed.map(SongEntity::toHomeContent) to recentFavorites.map(SongEntity::toHomeContent)
+                }
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList<Content>() to emptyList())
 
     private var _homeListState = MutableStateFlow<ListState>(ListState.IDLE)
     val homeListState: StateFlow<ListState> = _homeListState
@@ -376,3 +399,19 @@ class HomeViewModel(
         const val HOME_PARAMS_FOCUS = "ggM8SgQIBxABSgQIBRABSgQICRABSgQIChABSgQIDRABSgQICBABSgQIBBABSgQIDhABSgQIAxABSgQIBhAD"
     }
 }
+
+private fun SongEntity.toHomeContent(): Content =
+    Content(
+        album = albumId?.let { id -> albumName?.let { name -> Album(id, name) } },
+        artists = artistName?.mapIndexed { index, name -> Artist(artistId?.getOrNull(index), name) },
+        description = null,
+        isExplicit = isExplicit,
+        playlistId = null,
+        browseId = null,
+        thumbnails = listOfNotNull(thumbnails?.let { Thumbnail(544, it, 544) }),
+        title = title,
+        videoId = videoId,
+        views = null,
+        durationSeconds = durationSeconds,
+        videoType = videoType,
+    )
