@@ -1143,9 +1143,9 @@ fun NowPlayingContentSpotify(
                                                 IconButton(
                                                     modifier =
                                                         Modifier
-                                                            .size(24.dp)
-                                                            .aspectRatio(1f)
-                                                            .clip(CircleShape),
+                                                            .size(44.dp)
+                                                            .clip(CircleShape)
+                                                            .background(Color.White.copy(alpha = 0.14f)),
                                                     onClick = {
                                                         actions.onShowAddToPlaylist()
                                                     },
@@ -1154,6 +1154,7 @@ fun NowPlayingContentSpotify(
                                                         imageVector = SimpIcons.PlaylistAdd,
                                                         tint = Color.White,
                                                         contentDescription = "Add to Playlist",
+                                                        modifier = Modifier.size(24.dp),
                                                     )
                                                 }
 
@@ -1161,9 +1162,9 @@ fun NowPlayingContentSpotify(
                                                 IconButton(
                                                     modifier =
                                                         Modifier
-                                                            .size(24.dp)
-                                                            .aspectRatio(1f)
-                                                            .clip(CircleShape),
+                                                            .size(44.dp)
+                                                            .clip(CircleShape)
+                                                            .background(Color.White.copy(alpha = 0.14f)),
                                                     onClick = {
                                                         actions.onShowQueue()
                                                     },
@@ -1172,6 +1173,7 @@ fun NowPlayingContentSpotify(
                                                         imageVector = SimpIcons.QueueMusic,
                                                         tint = Color.White,
                                                         contentDescription = "",
+                                                        modifier = Modifier.size(24.dp),
                                                     )
                                                 }
                                             }
