@@ -797,17 +797,27 @@ fun HomeScreen(
                         OfflineErrorState(onRetry = onRefresh, onOpenDownloaded = openDownloaded)
                         return@Crossfade
                     }
+                    val combinedShelves =
+                        remember(localShelves, homeShelves) {
+                            localShelves + homeShelves
+                        }
                     LazyColumn(
                         state = scrollState,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        itemsIndexed(localShelves + homeShelves, key = { index, item ->
-                            if (index < localShelves.size) {
-                                "local-home-${item.title}"
-                            } else {
-                                item.hashCode().toString() + (mainHomeThumbnail ?: "nothumb")
-                            }
-                        }) { index, item ->
+                        itemsIndexed(
+                            items = combinedShelves,
+                            key = { index, item ->
+                                if (index < localShelves.size) {
+                                    "local-home-${item.title}"
+                                } else {
+                                    "remote-home-${item.title}-${item.channelId ?: index}"
+                                }
+                            },
+                            contentType = { index, _ ->
+                                if (index < localShelves.size) "local_shelf" else "remote_shelf"
+                            },
+                        ) { index, item ->
                             Box {
                                 if (index == 0) {
                                     Box(
