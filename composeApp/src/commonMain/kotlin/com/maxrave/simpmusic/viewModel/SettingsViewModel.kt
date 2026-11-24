@@ -1811,7 +1811,7 @@ class SettingsViewModel(
     }
 
     private suspend fun clearYouTubeSession() {
-        accountRepository.getAllGoogleAccount().firstOrNull()?.forEach { account ->
+        accountRepository.getGoogleAccounts().firstOrNull()?.forEach { account ->
             accountRepository.deleteGoogleAccount(account.email)
         }
         dataStoreManager.putString("AccountName", "")
