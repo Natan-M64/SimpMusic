@@ -452,6 +452,7 @@
     <string name="theme_mode_system">System default</string>
     <string name="theme_mode_dark">Dark</string>
     <string name="theme_mode_light">Light</string>
+    <string name="theme_mode_amoled">AMOLED</string>
     <string name="now_playing_style">Now Playing style</string>
     <string name="now_playing_style_spotify">Classic</string>
     <string name="now_playing_style_m3_expressive" translatable="false">Material 3 Expressive</string>
@@ -1178,4 +1179,11 @@
     <string name="restore_login_session_description">Keep Google/YouTube login cookies when restoring a backup. Turn off to restore only library and settings.</string>
     <string name="max_parallel_downloads">Max parallel downloads</string>
     <string name="max_parallel_downloads_description">Lower values save battery and reduce network load during batch downloads.</string>
+    <string name="app_icon_title">App icon</string>
+    <string name="app_icon_liquid_glass">Liquid Glass</string>
+    <string name="app_icon_old_school">Old-school</string>
+    <string name="app_icon_minimalism_light">Minimalism Light</string>
+    <string name="app_icon_minimalism_dark">Minimalism Dark</string>
+    <string name="app_icon_pixel">Pixel</string>
+    <string name="app_icon_close_warning">Changing the app icon will close your app. Open it again from the new icon. Are you sure?</string>
 </resources>
